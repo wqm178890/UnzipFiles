@@ -7,77 +7,41 @@ import java.util.zip.*;
 import java.io.*;
 
 public class Main {
-	public static boolean delete;
 	public static HashMap<String, String> arguments = new HashMap<String, String>();
-	public static String[] validArgs = new String[]{"-delete", "-type"};
+	public static String[] validArgs = new String[]{"-delete", "-to"};
     public static void main(String[] args) {
-        System.out.println(setValidArguments(args));
-        /*
-        if (option.equalsIgnoreCase("same") || option.equalsIgnoreCase("samedirec") || option.equalsIgnoreCase("root") 
-        || option.equalsIgnoreCase("rootdirec") ){
-            recursiveFind(new File(args[0]), option, new File(args[0]));
-        } else {
-            System.out.println("Option not valid");
-        }
-        */
+    	File root = new File(System.getProperty("user.dir"));
+    	
+        if (setValidArguments(args)) {
+			recursiveFileFind(root, root);
+		}
     }
-    /*
-    options are
-        null - equals as same
-        same - files extracto the same directory as which they come from
-        samedirec - files extract to the same directory as which they come, but into it's own folder
-        root - all files extract to the root
-        rootdirec - all files extract to the root, but into it's own folder
-    */
-    public static boolean getDelete(String[] args){
-        for (int a=0; a<args.length; a++) {
-            if(args[a].equals("delete")){
-                return true;
-            }
-        }
-        return false;
-    }
-    public static String getOption(String[] args){
-        for (int a=0; a<args.length; a++) {
-            if(args[a].equals("same")){
-                return "same";
-            }
-            if(args[a].equals("samedirec")){
-                return "samedirec";
-            }
-            if(args[a].equals("root")){
-                return "root";
-            }
-            if(args[a].equals("rootdirec")){
-                return "rootdirec";
-            }
-        }
-        return "same";
-    }
-    public static void recursiveFind(File directory, String option, File root){
+    public static void recursiveFileFind(File directory, File root){
         File[] files = directory.listFiles();
         for(int a=0; a<files.length; a++){
             if(files[a].isDirectory()){
-                recursiveFind(files[a], option, root);
+                recursiveFileFind(files[a], root);
             } else {
-                if (option.equalsIgnoreCase("same") || option.equalsIgnoreCase("samedirec") ) {
-                    extract(files[a], option, directory);
-                } else if(option.equalsIgnoreCase("root") || option.equalsIgnoreCase("rootdirec") ){
-                    extract(files[a], option, root);
+                if (arguments.containsKey("-to") && arguments.get("-to").equals("same")) {
+                    extract(files[a], directory);
+                } else if(arguments.containsKey("-to") && arguments.get("-to").equals("root")){
+                    extract(files[a], root);
                 }
-                if(delete){
+                
+                if(arguments.containsKey("-delete") && arguments.get("-delete").equals("true")){
                     files[a].delete();
                 }
             }
         }
     }
-    public static void extract(File file, String option, File root){
-        if(file.getName().endsWith(".zip")){
-            extractZipFile(file, option, root);
+    public static void extract(File file, File root){
+    	if(file.getName().endsWith(".zip")){
+            extractZipFile(file, root);
         }
     }
-    public static void extractZipFile(File file, String option, File root){
+    public static void extractZipFile(File file, File root){
         byte[] buffer = new byte[1024];
+        System.out.println(file.getAbsolutePath());
         try{
             ZipInputStream zis = new ZipInputStream(new FileInputStream(file));
             ZipEntry entry;
